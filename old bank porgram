@@ -1,0 +1,229 @@
+import mysql.connector
+import pickle
+import random
+
+mydb=mysql.connector.connect(user='root',
+    passwd='root',
+    host='localhost',
+    database='bankdb'
+    )
+
+mycursor=mydb.cursor(buffered=True)
+#use when database is not createdd..
+#mycursor.execute('create database bankdb')
+
+def ppin():
+    pin=int(input("Enter your pin : "))
+    return pin
+
+def widwral(acno):
+    pin=int(ppin())
+    chch=int(input("Press 1. Debit  \n 2. Credit"))
+    cmd="select * from bank"
+    mycursor.execute(cmd)
+    if(chch==2):  
+       
+        for i in mycursor:
+            i=list(i)
+            if i[0]==acno and i[1]==pin :
+                amt=int(input("Enter amount to eb widraw through credid:"))
+                lim=int(i[7]/10)
+                if lim>=amt:
+                    i[3]-=amt
+                    cmd="update bank set cred=%s where ACCNO=%s"
+                    val=(i[3],i[0])
+                    mycursor.execute(cmd,val)
+                    mydb.commit()
+                    print("***Transaction done***".center(140))
+
+                else:
+                    print("Limit exceded")
+            else:
+                print("Accno and Pin does'nt match")
+                break
+    elif(chch==1):
+        for i in mycursor:
+            i=list(i)
+            if i[0]==acno and i[1]==pin :
+                amt=int(input("Enter amount to eb widraw through credid:"))
+                i[2]-=amt
+                cmd="update bank set balance=%s where ACCNO=%s"
+                val=(i[2],i[0])
+                mycursor.execute(cmd,val)
+                mydb.commit()
+                print("***Transaction done***".center(140))
+            else:
+                print("Accno and Pin does'nt match")
+                break
+
+def deposit(acno):
+    pin=int(ppin())
+    chch=int(input("Press 1. Debit  \n 2. Credit"))
+    cmd="select * from bank"
+    mycursor.execute(cmd)
+    if(chch==2):
+        for i in mycursor:
+            i=list(i)
+            if i[0]==acno and i[1]==pin :
+                amt=int(input("Enter amount to deposit through credid:"))
+                i[3]+=amt
+                cmd="update bank set cred=%s where ACCNO=%s"
+                val=(i[3],i[0])
+                mycursor.execute(cmd,val)
+                mydb.commit()
+                print("***Transaction done***".center(140))
+            else:
+                print("Accno and Pin does'nt match")
+                break
+    elif(chch==1):
+        for i in mycursor:
+            i=list(i)
+            if i[0]==acno and i[1]==pin :
+                amt=int(input("Enter amount to eb widraw through credid:"))
+                i[2]+=amt
+                cmd="update bank set balance=%s where ACCNO=%s"
+                val=(i[2],i[0])
+                mycursor.execute(cmd,val)
+                mydb.commit()
+                print("***Transaction done***".center(140))
+            else:
+                print("Accno and Pin does'nt match")
+                break
+
+def transfer(acno):
+    pinn=int(ppin())
+    cmd="select * from bank"
+    mycursor.execute(cmd)
+    for i in mycursor:
+            i=list(i)
+            if i[0]==acno and i[1]==pinn :
+                amt=int(input("Enter amount be transferred : "))
+                altacno=int(input("Enter accno to transfer amount : "))
+                for j in mycursor:
+                    j=list(j)
+                    if j[0]==altacno():
+                        j[2]+=amt
+                        cmd="update bank set balance=%s where ACCNO=%s"
+                        val=(j[2],j[0])
+                        mycursor.execute(cmd,val)
+                        mydb.commit()
+                i[2]-=amt
+                cmd="update bank set balance=%s where ACCNO=%s"
+                val=(i[2],i[0])
+                mycursor.execute(cmd,val)
+                mydb.commit()
+                print("***Transaction done***".center(140))
+            else:
+                print("Accno and Pin does'nt match")
+                break
+
+def loanapp(accno):
+    pinn=int(ppin())
+    amt=int(input("Enter loan amount : "))
+    cmd="select * from bank"
+    mycursor.execute(cmd)
+    for i in mycursor:
+        i=list(i)
+        if i[0]==accno and i[1]==pinn:
+            n=int(input("Enter loan repayment time period in years( less than 10 years) : "))
+            emi=double(amt/(n*12))
+            if ((emi*5)<=i[7]):
+                i[2]+=amt
+            else:
+                print("***Requirements not metting***".center(140))
+            cmd="update bank set balance=%s where ACCNO=%s"
+            val=(i[2],i[0])
+            mycursor.execute(cmd,val)
+            mydb.commit()
+            print("***Transaction done***".center(140))
+        else:
+            print("***Account number and pin not matching***")
+
+def changecred(acno):
+    pinn=int(ppin())
+    cmd="select * from bank"
+    mycursor.execute(cmd)
+    for i in mycursor:
+        i=list(i)
+        if i[0]==acno and i[1]==pinn:
+            yn=input("Change email id? (y/n) : ")
+            if yn=='y' or yn=='Y':
+                i[6]=input("Enter new email id : ")
+            yn1=input("Change phone number ? (y/n) : ")
+            if yn1=='y' or yn1=='Y':
+                i[5]=int(input("Enter new phone number : "))
+            cmd="update bank set email=%s, mobile=%s where ACCNO=%s"
+            val=(i[6],i[5],i[0])
+            mycursor.execute(cmd,val)
+            mydb.commit()
+            print("DATA UPDATED")
+        else:
+            print("Account number and pin does'nt match")
+
+def showtable():
+    cmd="describe bank"
+    mycursor.execute(cmd)
+    for x in mycursor:
+        print(x)
+
+
+
+def createacc():
+    while True:
+        Acc=int(input("enter a suitable account number : "))
+        pinn=rand.int(000,999)
+        name=input("enter your name : ")
+        mobile=input("enter your mobile number : ")
+        email=input("enter your email id : ")
+        salary=int(input("enter your salary p.a : "))
+        adress=input("enter current adress : ")
+        aadharr=int(input("enter Aadhar no. : "))
+        dob=input("Enter yotu dob( dd/mm/yyyy) : ")
+        bal=int(0)
+        cred=int(0)
+        rec=[Acc,pinn,bal,cred,name,mobile,email,salary,adress,aadharr,dob]
+        cmd="insert into bank values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        mycursor.execute(cmd,rec)
+        mydb.commit()
+        inin=input("Do you want to input more records? y/n")
+        if ch=='n' or ch=='N':
+            break
+
+def create():
+    try:
+        mycursor.execute('create table bank(ACCNO varchar(10), PIN varchar(3), balance varchar(10), cred varchar(10), NAME varchar(20), mobile varchar(10), email varchar(20), salary varchar(10), address varchar(100), aadhar varchar(12), dob varchar(10)')
+        print("******Table created******".center(140))
+        #insert()
+    except:
+        print("******Table exist******".center(140))
+        #insert()
+
+def direct(i,acno):
+    ch=int(acno)
+    if(i==1):
+        widwral(ch)
+    elif(i==2):
+        deposit(ch)
+    elif(i==3):
+        transfer(ch)
+    elif(i==4):
+        loanapp(ch)
+    elif(i==5):
+        changecred(ch)
+    elif(i==6):
+        showtable()
+    else:
+        print(" INVALID INPUT ".center(140))
+
+print("WELCOME TO SD BANK".center(140))
+print("*"*140)
+create()
+print("*"*140)
+yn=input("Are you an existing customer to our bank? : ")
+yn=yn.lower()
+if yn == "yes":
+    accno=int(input("Enter Account number : "))
+    print("Press 1. Widwral \n 2. Deposit \n 3. Transfer \n 4. Loan \n 5. Change credentials \n 6. Show table ")
+    direct(i,accno)
+else:
+    createacc()
